@@ -1,49 +1,52 @@
-import {z} from "zod";
+import Joi from "joi";
 import {useForm} from "react-hook-form";
-import {zodResolver} from "@hookform/resolvers/zod";
+import {joiResolver} from "@hookform/resolvers/joi";
 import useAxiosHook from "../hooks/useAxiosHook";
 import {useEffect} from "react";
 import {Link, useNavigate} from "react-router-dom";
 
 function RegisterComp() {
-	let validationSchema = z.object({
-		name: z
-			.string()
-			.min(1, "Ism kiritilishi shart!")
-			.max(20, "Ismingiz 20 ta belgidan kam bo'lishi kerak!"),
-		email: z
-			.string()
-			.min(1, "Email kiritilishi shart!")
-			.email("Email formati to'g'ri kiritilishi"),
-		password: z
-			.string()
-			.min(1, "Parol kiritilishi shart!")
-			.min(6, "Parol 6 ta belgidan kam bo'lmasligi kerak!")
-			.max(20, "Parol 20 ta belgidan ko'p bo'lmasligi kerak!"),
+	const validationSchema = Joi.object({
+		name: Joi.string().min(1).max(20).required().messages({
+			"string.empty": "Ism kiritilishi shart!",
+			"string.max": "Ismingiz 20 ta belgidan kam bo'lishi kerak!",
+		}),
+		email: Joi.string()
+			.email({tlds: {allow: false}})
+			.required()
+			.messages({
+				"string.empty": "Email kiritilishi shart!",
+				"string.email": "Email formati to'g'ri kiritilishi kerak!",
+			}),
+		password: Joi.string().min(6).max(20).required().messages({
+			"string.empty": "Parol kiritilishi shart!",
+			"string.min": "Parol 6 ta belgidan kam bo'lmasligi kerak!",
+			"string.max": "Parol 20 ta belgidan ko'p bo'lmasligi kerak!",
+		}),
 	});
 
-	let {
+	const {
 		register,
 		handleSubmit,
 		reset,
 		formState: {errors},
 	} = useForm({
-		resolver: zodResolver(validationSchema),
+		resolver: joiResolver(validationSchema),
 	});
 
-	let [{data, loading, error}, fetchData] = useAxiosHook();
-	let navigate = useNavigate();
+	const [{data, loading, error}, fetchData] = useAxiosHook();
+	const navigate = useNavigate();
 
 	useEffect(() => {
-		let config = {
+		const config = {
 			url: "https://6754135536bcd1eec8500f38.mockapi.io/users",
 			method: "GET",
 		};
 		fetchData(config);
 	}, []);
 
-	let postFetch = (userData) => {
-		let config = {
+	const postFetch = (userData) => {
+		const config = {
 			url: "https://6754135536bcd1eec8500f38.mockapi.io/users",
 			method: "POST",
 			data: userData,
@@ -51,7 +54,7 @@ function RegisterComp() {
 		return fetchData(config);
 	};
 
-	let onSubmit = (userData) => {
+	const onSubmit = (userData) => {
 		reset();
 
 		data.some((value) => value.email === userData.email)
@@ -86,7 +89,7 @@ function RegisterComp() {
 									{...register("name")}
 								/>
 								{errors.name && (
-									<p className="text-red-500 mt-2 text-sm">
+									<p className="mt-2 text-sm text-red-500">
 										{errors.name.message}
 									</p>
 								)}
@@ -106,7 +109,7 @@ function RegisterComp() {
 									{...register("email")}
 								/>
 								{errors.email && (
-									<p className="text-red-500 mt-2 text-sm">
+									<p className="mt-2 text-sm text-red-500">
 										{errors.email.message}
 									</p>
 								)}
@@ -126,7 +129,7 @@ function RegisterComp() {
 									{...register("password")}
 								/>
 								{errors.password && (
-									<p className="text-red-500 mt-2 text-sm">
+									<p className="mt-2 text-sm text-red-500">
 										{errors.password.message}
 									</p>
 								)}
@@ -138,7 +141,6 @@ function RegisterComp() {
 								Already have an account?
 								<Link
 									to="Login"
-									href="#"
 									className="font-medium text-primary-600 hover:underline dark:text-primary-500">
 									Login here
 								</Link>

@@ -1,42 +1,43 @@
-import * as Yup from "yup";
+import {object, string, refine} from "superstruct";
 import {useForm} from "react-hook-form";
-import {yupResolver} from "@hookform/resolvers/yup";
+import {superstructResolver} from "@hookform/resolvers/superstruct";
 import useAxiosHook from "../hooks/useAxiosHook";
 import {useEffect} from "react";
 import {Link, useNavigate} from "react-router-dom";
 
 function LoginComp() {
-	let validationSchema = Yup.object({
-		email: Yup.string()
-			.required("Email kiriting!")
-			.email("Email to'g'ri kiriting!"),
-		password: Yup.string()
-			.min(6, "Parol 6 ta belgidan kam bo'lmasligi kerak!")
-			.max(20, "Parol 20 ta belgidan kam bo'lishi kerak!")
-			.required("Parolni kiriting!"),
+	const validationSchema = object({
+		email: refine(string(), "email", (value) =>
+			/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+		),
+		password: refine(
+			string(),
+			"password",
+			(value) => value.length >= 6 && value.length <= 20
+		),
 	});
 
-	let {
+	const {
 		register,
 		handleSubmit,
 		formState: {errors},
 	} = useForm({
-		resolver: yupResolver(validationSchema),
+		resolver: superstructResolver(validationSchema),
 	});
 
-	let [{data, loading, error}, fetchData] = useAxiosHook();
-	let navigate = useNavigate();
+	const [{data, loading, error}, fetchData] = useAxiosHook();
+	const navigate = useNavigate();
 
 	useEffect(() => {
-		let config = {
+		const config = {
 			url: "https://6754135536bcd1eec8500f38.mockapi.io/users",
 			method: "GET",
 		};
 		fetchData(config);
 	}, []);
 
-	let onSubmit = (userData) => {
-		let userChecker = data.some((value) => {
+	const onSubmit = (userData) => {
+		const userChecker = data.some((value) => {
 			if (userData.email === value.email) {
 				if (userData.password !== value.password) {
 					console.log("Sizning parolingiz noto'g'ri!");
@@ -72,7 +73,7 @@ function LoginComp() {
 						{...register("email")}
 					/>
 					{errors.email && (
-						<p className="text-red-500 mt-2 text-sm">{errors.email.message}</p>
+						<p className="mt-2 text-sm text-red-500">{errors.email.message}</p>
 					)}
 				</div>
 				<div className="mb-5">
@@ -89,7 +90,7 @@ function LoginComp() {
 						{...register("password")}
 					/>
 					{errors.password && (
-						<p className="text-red-500 mt-2 text-sm">
+						<p className="mt-2 text-sm text-red-500">
 							{errors.password.message}
 						</p>
 					)}
@@ -98,7 +99,7 @@ function LoginComp() {
 					<button className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
 						Login
 					</button>
-					<p className="text-base mt-2 font-light text-gray-500 dark:text-gray-400">
+					<p className="mt-2 text-base font-light text-gray-500 dark:text-gray-400">
 						<Link
 							to="/"
 							className="font-medium text-primary-600 hover:underline dark:text-primary-500">
